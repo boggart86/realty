@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}{{ realty.title }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'realty:catalog' %}">Каталог</a></li>
+    <li class="breadcrumb-item active">{{ realty.title }}</li>
+  </ol>
+</nav>
+
+<div class="row g-5">
+  <!-- Галерея -->
+  <div class="col-lg-7">
+    {% with photos=realty.photos.all %}
+      {% if photos %}
+        <div id="photoCarousel" class="carousel slide carousel-fade shadow-sm rounded-3 overflow-hidden" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            {% for photo in photos %}
+              <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ photo.image.url }}" class="d-block w-100 detail-img" alt="Фото {{ forloop.counter }}">
+              </div>
+            {% endfor %}
+          </div>
+          {% if photos|length > 1 %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon"></span>
+            </button>
+            <div class="carousel-thumbnails mt-2 d-flex gap-2 flex-wrap">
+              {% for photo in photos %}
+                <img src="{{ photo.image.url }}"
+                     class="thumb {% if forloop.first %}active{% endif %}"
+                     data-bs-target="#photoCarousel"
+                     data-bs-slide-to="{{ forloop.counter0 }}"
+                     alt="Фото {{ forloop.counter }}">
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="detail-img-placeholder rounded-3">
+          <i class="bi bi-house"></i>
+          <p>Фото не добавлены</p>
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Детали -->
+  <div class="col-lg-5">
+    <div class="detail-sidebar">
+      <span class="badge-type mb-2">{{ realty.get_realty_type_display }}</span>
+      <h1 class="detail-title">{{ realty.title }}</h1>
+      <p class="detail-address"><i class="bi bi-geo-alt-fill text-danger"></i> {{ realty.address }}</p>
+
+      <div class="detail-price">{{ realty.price|floatformat:0 }} ₽</div>
+
+      <div class="detail-specs row g-3 my-3">
+        <div class="col-4 text-center spec-box">
+          <div class="spec-val">{{ realty.area }}</div>
+          <div class="spec-lbl">м² площадь</div>
+        </div>
+        <div class="col-4 text-center spec-box">
+          <div class="spec-val">{{ realty.floors }}</div>
+          <div class="spec-lbl">этажей</div>
+        </div>
+        <div class="col-4 text-center spec-box">
+          <div class="spec-val">{{ realty.rooms }}</div>
+          <div class="spec-lbl">комнат</div>
+        </div>
+      </div>
+
+      {% if realty.description %}
+        <div class="detail-desc">
+          <h6>Описание</h6>
+          <p>{{ realty.description|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+
+      <div class="detail-owner text-muted small mb-3">
+        <i class="bi bi-person"></i> {{ realty.owner.get_full_name }}
+        &nbsp;·&nbsp;
+        <i class="bi bi-calendar3"></i> {{ realty.created_at|date:"d.m.Y" }}
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        {% if user.is_authenticated %}
+          <button
+            id="btn-fav"
+            class="btn {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %}"
+            data-pk="{{ realty.pk }}"
+            data-url="{% url 'realty:toggle_favorite' realty.pk %}">
+            <i class="bi {% if is_favorite %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+            {% if is_favorite %}В избранном{% else %}В избранное{% endif %}
+          </button>
+        {% else %}
+          <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-outline-danger">
+            <i class="bi bi-heart"></i> В избранное
+          </a>
+        {% endif %}
+
+        {% if user.is_superuser or user.is_staff and realty.owner == user %}
+          <a href="{% url 'realty:edit' realty.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil"></i> Редактировать
+          </a>
+          <a href="{% url 'realty:delete' realty.pk %}" class="btn btn-outline-danger">
+            <i class="bi bi-trash"></i> Удалить
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const favBtn = document.getElementById('btn-fav');
+if (favBtn) {
+  favBtn.addEventListener('click', async () => {
+    const res = await fetch(favBtn.dataset.url, {
+      method: 'POST',
+      headers: {'X-CSRFToken': '{{ csrf_token }}'},
+    });
+    const data = await res.json();
+    if (data.is_favorite) {
+      favBtn.className = 'btn btn-danger';
+      favBtn.innerHTML = '<i class="bi bi-heart-fill"></i> В избранном';
+    } else {
+      favBtn.className = 'btn btn-outline-danger';
+      favBtn.innerHTML = '<i class="bi bi-heart"></i> В избранное';
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Каталог недвижимости{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="page-title">Каталог недвижимости</h1>
+    <p class="text-muted">Найдено объектов: <strong>{{ total }}</strong></p>
+  </div>
+</div>
+
+<!-- Фильтры -->
+<div class="filter-card mb-4">
+  <form method="get" class="row g-3 align-items-end">
+    <div class="col-12">
+      <h6 class="filter-title mb-3"><i class="bi bi-funnel"></i> Фильтры</h6>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Цена, ₽</label>
+      <div class="input-group">
+        {{ form.price_min }}
+        <span class="input-group-text">—</span>
+        {{ form.price_max }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Площадь, м²</label>
+      <div class="input-group">
+        {{ form.area_min }}
+        <span class="input-group-text">—</span>
+        {{ form.area_max }}
+      </div>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Этажей</label>
+      <div class="input-group">
+        {{ form.floors_min }}
+        <span class="input-group-text">—</span>
+        {{ form.floors_max }}
+      </div>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-primary flex-fill">
+        <i class="bi bi-search"></i> Найти
+      </button>
+      <a href="{% url 'realty:catalog' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Карточки -->
+{% if page_obj.object_list %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+    {% for obj in page_obj %}
+      <div class="col">
+        <div class="realty-card h-100">
+          <a href="{% url 'realty:detail' obj.pk %}" class="card-img-link">
+            {% with cover=obj.get_cover_photo %}
+              {% if cover %}
+                <img src="{{ cover.image.url }}" alt="{{ obj.title }}" class="card-img">
+              {% else %}
+                <div class="card-img-placeholder">
+                  <i class="bi bi-house"></i>
+                </div>
+              {% endif %}
+            {% endwith %}
+          </a>
+          <div class="card-body-custom">
+            <div class="card-meta">
+              <span class="badge-type">{{ obj.get_realty_type_display }}</span>
+              {% if user.is_authenticated %}
+                <button
+                  class="btn-fav {% if obj.pk in favorite_ids %}active{% endif %}"
+                  data-pk="{{ obj.pk }}"
+                  title="{% if obj.pk in favorite_ids %}Убрать из избранного{% else %}В избранное{% endif %}">
+                  <i class="bi {% if obj.pk in favorite_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                </button>
+              {% endif %}
+            </div>
+            <h2 class="card-title">
+              <a href="{% url 'realty:detail' obj.pk %}">{{ obj.title }}</a>
+            </h2>
+            <p class="card-address"><i class="bi bi-geo-alt"></i> {{ obj.address }}</p>
+            <div class="card-specs">
+              <span><i class="bi bi-arrows-angle-expand"></i> {{ obj.area }} м²</span>
+              <span><i class="bi bi-building"></i> {{ obj.floors }} эт.</span>
+              <span><i class="bi bi-door-open"></i> {{ obj.rooms }} комн.</span>
+            </div>
+            <div class="card-footer-custom">
+              <span class="card-price">{{ obj.price|floatformat:0 }} ₽</span>
+              {% if user.is_staff and obj.owner == user or user.is_superuser %}
+                <div class="card-actions">
+                  <a href="{% url 'realty:edit' obj.pk %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <a href="{% url 'realty:delete' obj.pk %}" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Пагинация -->
+  {% if page_obj.has_other_pages %}
+    <nav class="mt-5 d-flex justify-content-center">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?{% with request.GET.urlencode as params %}{{ params }}{% endwith %}&page={{ page_obj.previous_page_number }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+
+{% else %}
+  <div class="empty-state">
+    <i class="bi bi-house-x"></i>
+    <h3>Объекты не найдены</h3>
+    <p>Попробуйте изменить параметры фильтрации</p>
+    <a href="{% url 'realty:catalog' %}" class="btn btn-primary">Сбросить фильтры</a>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TOGGLE_URLS = {};
+{% for obj in page_obj %}
+  TOGGLE_URLS[{{ obj.pk }}] = "{% url 'realty:toggle_favorite' obj.pk %}";
+{% endfor %}
+</script>
+{% endblock %}

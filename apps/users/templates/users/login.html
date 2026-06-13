@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-7 col-lg-5">
+    <div class="auth-card">
+      <div class="auth-logo">🏡</div>
+      <h1 class="auth-title">Добро пожаловать</h1>
+      <p class="auth-subtitle">Войдите в личный кабинет</p>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">{{ form.username.label }}</label>
+          {{ form.username }}
+          {% if form.username.errors %}<div class="invalid-feedback d-block">{{ form.username.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-4">
+          <label class="form-label">{{ form.password.label }}</label>
+          {{ form.password }}
+          {% if form.password.errors %}<div class="invalid-feedback d-block">{{ form.password.errors }}</div>{% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary w-100 btn-lg">Войти</button>
+      </form>
+
+      <p class="auth-switch">
+        Нет аккаунта? <a href="{% url 'users:register' %}">Зарегистрируйтесь</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

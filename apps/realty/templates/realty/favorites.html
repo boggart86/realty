@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Избранное{% endblock %}
+
+{% block content %}
+<h1 class="page-title mb-4"><i class="bi bi-heart-fill text-danger"></i> Избранное</h1>
+
+{% if favorites %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+    {% for fav in favorites %}
+      {% with obj=fav.realty %}
+        <div class="col">
+          <div class="realty-card h-100">
+            <a href="{% url 'realty:detail' obj.pk %}" class="card-img-link">
+              {% with cover=obj.get_cover_photo %}
+                {% if cover %}
+                  <img src="{{ cover.image.url }}" alt="{{ obj.title }}" class="card-img">
+                {% else %}
+                  <div class="card-img-placeholder">
+                    <i class="bi bi-house"></i>
+                  </div>
+                {% endif %}
+              {% endwith %}
+            </a>
+            <div class="card-body-custom">
+              <div class="card-meta">
+                <span class="badge-type">{{ obj.get_realty_type_display }}</span>
+              </div>
+              <h2 class="card-title">
+                <a href="{% url 'realty:detail' obj.pk %}">{{ obj.title }}</a>
+              </h2>
+              <p class="card-address"><i class="bi bi-geo-alt"></i> {{ obj.address }}</p>
+              <div class="card-specs">
+                <span><i class="bi bi-arrows-angle-expand"></i> {{ obj.area }} м²</span>
+                <span><i class="bi bi-building"></i> {{ obj.floors }} эт.</span>
+                <span><i class="bi bi-door-open"></i> {{ obj.rooms }} комн.</span>
+              </div>
+              <div class="card-footer-custom">
+                <span class="card-price">{{ obj.price|floatformat:0 }} ₽</span>
+                <form action="{% url 'realty:toggle_favorite' obj.pk %}" method="post" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Убрать из избранного">
+                    <i class="bi bi-heart-fill"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endwith %}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <i class="bi bi-heart"></i>
+    <h3>Избранное пусто</h3>
+    <p>Добавляйте объекты в избранное, чтобы не потерять их</p>
+    <a href="{% url 'realty:catalog' %}" class="btn btn-primary">Перейти в каталог</a>
+  </div>
+{% endif %}
+{% endblock %}
