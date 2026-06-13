@@ -51,6 +51,11 @@ docker compose up -d --build
 ```bash
 docker compose exec web python manage.py createsuperuser
 ```
+#### добавление тестовых данных
+
+```bash
+docker-compose exec web python manage.py loaddata properties
+```
 
 Введите email и пароль.
 
