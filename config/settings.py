@@ -6,9 +6,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / '.env')
 
+DOMAIN = env('DOMAIN')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost'])
+
+CSRF_TRUSTED_ORIGINS = [
+    f'https://{DOMAIN}',
+    'http://localhost:8000',  # для разработки
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -96,5 +102,8 @@ MAX_PHOTOS_PER_REALTY = 10
 REALTY_PER_PAGE = 9
 
 # для https в проде
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
