@@ -73,7 +73,7 @@ def realty_create(request):
                 realty.save()
                 for i, photo_file in enumerate(photos):
                     if photo_file.size > settings.MAX_PHOTO_SIZE:
-                        messages.warning(request, f'Фото {i+1} превышает 30 МБ и пропущено.')
+                        messages.warning(request, f'Фото {i+1} превышает {settings.MAX_PHOTO_SIZE_MB} МБ и пропущено.')
                         continue
                     RealtyPhoto.objects.create(realty=realty, image=photo_file, order=i)
             messages.success(request, 'Объект успешно добавлен.')
@@ -83,6 +83,7 @@ def realty_create(request):
         'form': form,
         'title': 'Добавить объект',
         'max_photos': settings.MAX_PHOTOS_PER_REALTY,
+        'max_photo_size_mb': settings.MAX_PHOTO_SIZE_MB,
     })
 
 
@@ -107,7 +108,7 @@ def realty_edit(request, pk):
                     messages.warning(request, 'Достигнут лимит фотографий (10 шт).')
                     break
                 if photo_file.size > settings.MAX_PHOTO_SIZE:
-                    messages.warning(request, f'Фото {i+1} превышает 30 МБ и пропущено.')
+                    messages.warning(request, f'Фото {i+1} превышает {settings.MAX_PHOTO_SIZE_MB} МБ и пропущено.')
                     continue
                 RealtyPhoto.objects.create(
                     realty=realty, image=photo_file,
@@ -123,6 +124,7 @@ def realty_edit(request, pk):
         'title': 'Редактировать объект',
         'photos': realty.photos.all(),
         'max_photos': settings.MAX_PHOTOS_PER_REALTY,
+        'max_photo_size_mb': settings.MAX_PHOTO_SIZE_MB,
     })
 
 

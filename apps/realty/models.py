@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 def validate_photo_size(file):
     if file.size > settings.MAX_PHOTO_SIZE:
-        raise ValidationError(f'Максимальный размер фото — 30 МБ.')
+        raise ValidationError(f'Максимальный размер фото — {settings.MAX_PHOTO_SIZE} бит.')
 
 
 class Realty(models.Model):

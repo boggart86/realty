@@ -95,9 +95,9 @@ LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'realty:catalog'
 LOGOUT_REDIRECT_URL = 'realty:catalog'
 
-# Max upload size: 30 MB per photo
-MAX_PHOTO_SIZE = 30 * 1024 * 1024
-MAX_PHOTOS_PER_REALTY = 10
+MAX_PHOTO_SIZE = int(env('MAX_PHOTO_SIZE'))
+MAX_PHOTO_SIZE_MB = round(MAX_PHOTO_SIZE / (1024 * 1024), 1)
+MAX_PHOTOS_PER_REALTY = int(env('MAX_PHOTOS_PER_REALTY'))
 
 REALTY_PER_PAGE = 9
 

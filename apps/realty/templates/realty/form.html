@@ -74,7 +74,7 @@
           {% if realty %}
             <span class="text-muted fw-normal fs-6">(загружено {{ realty.photos_count }}/{{ max_photos }})</span>
           {% else %}
-            <span class="text-muted fw-normal fs-6">(до {{ max_photos }} фото, до 30 МБ каждое)</span>
+            <span class="text-muted fw-normal fs-6">(до {{ max_photos }} фото, до {{ max_photo_size_mb }} МБ каждое)</span>
           {% endif %}
         </h6>
 
